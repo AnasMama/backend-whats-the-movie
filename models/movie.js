@@ -32,6 +32,10 @@ const findAll = () => {
   return db.query("SELECT * FROM movie").then(([results]) => results);
 };
 
+const findAllId = () => {
+  return db.query("SELECT id FROM movie").then(([results]) => results.map(movie => movie.id));
+};
+
 const findOne = (id) => {
   return db
     .query("SELECT * FROM movie WHERE id = ?", [id])
@@ -89,6 +93,7 @@ module.exports = {
   findOne,
   findMany,
   findAll,
+  findAllId,
   findByMdbId,
   findByName,
   findByMdbWithDifferentId,

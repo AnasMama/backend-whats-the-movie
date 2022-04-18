@@ -1,5 +1,7 @@
 const usersRouter = require("express").Router();
 const User = require("../models/user");
+const Movie = require("../models/movie");
+const Score = require("../models/score");
 
 usersRouter.get("/", (req, res) => {
   const { login, email } = req.query;
@@ -27,19 +29,23 @@ usersRouter.get("/:id", (req, res) => {
 
 usersRouter.post("/", (req, res) => {
   const { login, email } = req.body;
+  let allIdMovie = [];
   Promise.all([
     User.findByLogin(login),
     User.findByEmail(email),
     User.validate(req.body),
+    Movie.findAllId(),
   ])
-    .then(([existingLogin, existingEmail, validationErrors]) => {
+    .then(([existingLogin, existingEmail, validationErrors, idMovie]) => {
       if (existingLogin) return Promise.reject("Already an user with this login");
       if (existingEmail) return Promise.reject("Already an user with this email");
       if (validationErrors) return Promise.reject("Invalid data");
-      return User.create(req.body);
+      allIdMovie = idMovie;
+      return User.create(req.body)
     })
     .then((newUser) => {
-      console.log(newUser);
+      User.findByLogin(newUser.login)
+      .then(user => Score.createForEveryMovie(user.id, allIdMovie));
       res.status(201).json(newUser);
     })
     .catch((err) => {
@@ -75,15 +81,27 @@ usersRouter.put("/:id", (req, res) => {
 });
 
 usersRouter.delete("/:id", (req, res) => {
-  User.destroy(req.params.id)
-    .then((deleted) => {
-      if (deleted) res.status(200).send("🎉 User deleted!");
-      else res.status(404).send("User not found");
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).send("Error deleting a user");
-    });
+  Score.destroyForEveryMovie(req.params.id)
+  .then((scoreDeleted) => {
+    if (scoreDeleted) {
+      User.destroy(req.params.id)
+        .then((deleted) => {
+          if (deleted) {
+            res.status(200).send("🎉 User deleted!");
+          }
+          else res.status(404).send("User not found");
+        })
+        .catch((err) => {
+          console.log(err);
+          res.status(500).send("Error deleting a user");
+        });
+    }
+    else res.status(404).send("Scores not found");
+  })
+  .catch((err) => {
+    console.log(err);
+    res.status(500).send("Error deleting scores of user");
+  });
 });
 
 module.exports = usersRouter;
