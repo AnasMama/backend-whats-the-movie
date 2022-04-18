@@ -11,6 +11,12 @@ const validate = (data, forCreation = true) => {
   }).validate(data, { abortEarly: false }).error;
 };
 
+const findOneWithMovieAndUser = (movie_id, user_id) => {
+  return db
+    .query("SELECT * FROM score WHERE user_id = ? AND movie_id = ?", [user_id, movie_id])
+    .then(([results]) => results[O]);
+};
+
 const findAllScoreOfUser = (user_id) => {
   return db
     .query("SELECT * FROM score WHERE user_id = ?", [user_id])
@@ -53,6 +59,7 @@ const destroyForEveryMovie = (user_id) => {
 };
 
 module.exports = {
+  findOneWithMovieAndUser,
   findAllScoreOfUser,
   findAllMovieWithScoreFoundOfUserByTheme,
   createForEveryMovie,
