@@ -23,11 +23,17 @@ const findAllScoreOfUser = (user_id) => {
     .then(([results]) => results);
 };
 
-const findAllMovieWithScoreFoundOfUserByTheme = (user_id, theme_id) => {
+const findAllMovieWithScoreFoundOfUserByTheme = ({filters: userId, themeId, level }) => {
+  let sql = "SELECT m.* , s.is_found FROM movie AS m INNER JOIN score AS s ON m.id=s.movie_id WHERE user_id = ? AND m.theme_id = ?";
+  let sqlValues = [userId, themeId]
+  if (level) {
+    sql += " AND m.level = ?";
+    sqlValues.push(level);
+  };
   return db
     .query(
-      "SELECT m.* , s.is_found FROM movie AS m INNER JOIN score AS s ON m.id=s.movie_id WHERE user_id = ? AND m.theme_id = ?",
-      [user_id, theme_id]
+      sql,
+      sqlValues
     )
     .then(([results]) => results);
 };

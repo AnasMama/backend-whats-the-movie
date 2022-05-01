@@ -1,11 +1,12 @@
 const scoresRouter = require("express").Router();
 const Score = require("../models/score");
 
-scoresRouter.get("/users/:user/themes/:theme", (req, res) => {
+scoresRouter.get("/users/:user/themes/:theme/", (req, res) => {
   const userId = parseInt(req.params.user);
   const themeId = parseInt(req.params.theme);
+  const level = parseInt(req.query.level);
 
-  Score.findAllMovieWithScoreFoundOfUserByTheme(userId, themeId)
+  Score.findAllMovieWithScoreFoundOfUserByTheme({filters: userId, themeId, level })
     .then((results) => {
       res.json(results);
     })
